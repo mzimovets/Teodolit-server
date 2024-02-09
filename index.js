@@ -1,4 +1,4 @@
-import express, { json, query } from "express";
+import express from "express";
 import bodyParser from "body-parser";
 //--------NeDB---------
 import Datastore from "nedb";
@@ -16,7 +16,7 @@ app.get("/", (req, res) => {
 });
 
 app.get("/users", (req, res) => {
-  console.log(database);
+  // console.log(database);
   database.find(
     {
       objectType: "user",
@@ -29,28 +29,28 @@ app.get("/users", (req, res) => {
       }
     }
   );
-  res.json({ status: "хай" });
+  // res.json({ status: "хай" });
 });
 
 app.post(
   "/users",
   urlencodedParser,
-  (req, res, next) => {
-    console.log("Привет!");
-    next();
-  },
+  // (req, res, next) => {
+  //   console.log("Привет!");
+  //   next();
+  // },
   (req, res) => {
     console.log(req.body);
     database.insert({
       objectType: "user",
-      key: req.body.key,
-      lastName: req.body.lastName,
-      name: req.body.name,
-      secondName: req.body.secondNameName,
-      group: req.body.group,
-      login: req.body.login,
-      password: req.body.password,
-      status: req.body.status,
+      key: req.body.data?.key,
+      lastName: req.body.data.lastName,
+      name: req.body.data.name,
+      secondName: req.body.data.secondName,
+      group: req.body.data.group,
+      login: req.body.data.login,
+      password: req.body.data.password,
+      status: req.body.data?.status,
     });
     res.json({ status: "ок" });
   }
