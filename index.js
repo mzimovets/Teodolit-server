@@ -71,3 +71,28 @@ app.delete("/users", (req, res) => {
 app.listen(port, () => {
   console.log(`Example app listening on port ${port}`);
 });
+
+
+app.get('/topic/:topicId', (req, res)=>{
+  const  topicId = req.params.topicId;
+  console.log('Getting', topicId)
+
+  database.findOne({_id : topicId}, function(err, item){
+    console.log('res', err, item)
+    res.json(item)
+  })
+})
+
+app.post('/topic/:topicId', urlencodedParser, (req,res)=> {
+  const  id = req.params.topicId;
+  const article = req.body.article
+
+  console.log('POST ', id, JSON.stringify(article))
+  database.insert({
+    objectType: "topic",
+    _id: id ,
+    article: article
+  }, (err, doc)=>{
+    res.json(doc)
+  })
+})
