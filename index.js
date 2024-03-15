@@ -1,10 +1,13 @@
 import express from "express";
 import bodyParser from "body-parser";
+import multer from "multer";
 //--------NeDB---------
 import Datastore from "nedb";
+
 export const database = new Datastore("database.db");
 database.loadDatabase();
 
+const __dirname = import.meta.dirname;
 const app = express();
 const port = 3001;
 
@@ -14,6 +17,20 @@ app.use(bodyParser.json());
 app.get("/", (req, res) => {
   res.json({ status: "хорошо" });
 });
+
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, "./uploads/");
+  },
+  filename: function (req, file, cb) {
+    cb(null, new Date().toISOString() + file.originalname);
+    console.log("file.originalname", file.originalname);
+    console.log("file.originalname", file);
+  },
+});
+const upload = multer({ storage: storage });
+
+app.use("/uploads", express.static(`${__dirname}/uploads`));
 
 app.get("/users", (req, res) => {
   // console.log(database);
@@ -72,27 +89,40 @@ app.listen(port, () => {
   console.log(`Example app listening on port ${port}`);
 });
 
+app.get("/topic/:topicId", (req, res) => {
+  const topicId = req.params.topicId;
+  console.log("Getting", topicId);
 
-app.get('/topic/:topicId', (req, res)=>{
-  const  topicId = req.params.topicId;
-  console.log('Getting', topicId)
+  database.findOne({ _id: topicId }, function (err, item) {
+    console.log("res", err, item);
+    res.json(item);
+  });
+});
 
-  database.findOne({_id : topicId}, function(err, item){
-    console.log('res', err, item)
-    res.json(item)
-  })
-})
+app.post("/topic/:topicId", urlencodedParser, (req, res) => {
+  const id = req.params.topicId;
+  const article = req.body.article;
 
-app.post('/topic/:topicId', urlencodedParser, (req,res)=> {
-  const  id = req.params.topicId;
-  const article = req.body.article
+  console.log("POST ", id, JSON.stringify(article));
+  database.insert(
+    {
+      objectType: "topic",
+      _id: id,
+      article: article,
+    },
+    (err, doc) => {
+      res.json(doc);
+    }
+  );
+});
 
-  console.log('POST ', id, JSON.stringify(article))
-  database.insert({
-    objectType: "topic",
-    _id: id ,
-    article: article
-  }, (err, doc)=>{
-    res.json(doc)
-  })
-})
+app.post("/imageTopic", upload.single("image"), (req, res) => {
+  console.log(req.file);
+  var response = {
+    success: 1,
+    file: {
+      url: "http://localhost:3001/" + req.file.path,
+    },
+  };
+  res.json(response);
+});
