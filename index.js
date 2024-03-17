@@ -111,7 +111,33 @@ app.post("/topic/:topicId", urlencodedParser, (req, res) => {
       article: article,
     },
     (err, doc) => {
-      res.json(doc);
+      console.log('Error ', err)
+      if(err){
+        res.json(err);  
+      } else {
+        res.json({status: 'ok',data: doc});
+      }
+    }
+  );
+});
+
+app.put("/topic/:topicId", urlencodedParser, (req, res) => {
+  const id = req.params.topicId;
+  const article = req.body.article;
+
+  console.log("POST ", id, JSON.stringify(article));
+  database.update({_id: id,},
+    {
+     $set: { objectType: "topic",
+     article: article,}
+    },{},
+    (err, doc) => {
+      console.log('Error ', err)
+      if(err){
+        res.json(err);  
+      } else {
+        res.json({status: 'ok',data: doc});
+      }
     }
   );
 });
