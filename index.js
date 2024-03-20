@@ -1,6 +1,12 @@
 import express from "express";
 import bodyParser from "body-parser";
 import multer from "multer";
+import {
+  generateAccessToken,
+  generateRefreshToken,
+  verifyRefreshToken,
+  authenticateToken,
+} from "./auth/auth.js";
 //--------NeDB---------
 import Datastore from "nedb";
 
@@ -32,7 +38,7 @@ const upload = multer({ storage: storage });
 
 app.use("/uploads", express.static(`${__dirname}/uploads`));
 
-app.get("/users", (req, res) => {
+app.get("/users", authenticateToken, (req, res) => {
   // console.log(database);
   database.find(
     {
@@ -50,7 +56,7 @@ app.get("/users", (req, res) => {
 });
 
 app.post(
-  "/users",
+  "/users", authenticateToken, 
   urlencodedParser,
   // (req, res, next) => {
   //   console.log("Привет!");
@@ -111,11 +117,11 @@ app.post("/topic/:topicId", urlencodedParser, (req, res) => {
       article: article,
     },
     (err, doc) => {
-      console.log('Error ', err)
-      if(err){
-        res.json(err);  
+      console.log("Error ", err);
+      if (err) {
+        res.json(err);
       } else {
-        res.json({status: 'ok',data: doc});
+        res.json({ status: "ok", data: doc });
       }
     }
   );
@@ -126,17 +132,18 @@ app.put("/topic/:topicId", urlencodedParser, (req, res) => {
   const article = req.body.article;
 
   console.log("POST ", id, JSON.stringify(article));
-  database.update({_id: id,},
+  database.update(
+    { _id: id },
     {
-     $set: { objectType: "topic",
-     article: article,}
-    },{},
+      $set: { objectType: "topic", article: article },
+    },
+    {},
     (err, doc) => {
-      console.log('Error ', err)
-      if(err){
-        res.json(err);  
+      console.log("Error ", err);
+      if (err) {
+        res.json(err);
       } else {
-        res.json({status: 'ok',data: doc});
+        res.json({ status: "ok", data: doc });
       }
     }
   );
@@ -152,3 +159,30 @@ app.post("/imageTopic", upload.single("image"), (req, res) => {
   };
   res.json(response);
 });
+
+// _____________АВТОРИЗАЦИЯ_______________
+
+app.post("/login", (req, res) => {
+  const { login, password } = req.body;
+  console.log('Body login pas', login, password)
+  const role = login === 'admin' && password === 'emf-@dmin' ? 1: 0
+  database.find({ login: login, password }, function (err, item) {
+    console.log("res", err, item);
+    if (!err && item.length !==0) {
+      const accessToken = generateAccessToken(item[0]);
+      console.log("accessToken", accessToken);
+      const refreshToken = generateRefreshToken(item[0]);
+      console.log("refreshToken", refreshToken);
+      //То есть инфу кодируем в токен
+      res.json({ accessToken: accessToken, refreshToken: refreshToken, role});
+    }
+    else {
+      res.json({err})
+    }
+  });
+});
+
+app.get("/secret", authenticateToken, (req, res) => {
+  res.json({status: "ok"})
+});
+
