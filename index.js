@@ -56,7 +56,8 @@ app.get("/users", authenticateToken, (req, res) => {
 });
 
 app.post(
-  "/users", authenticateToken, 
+  "/users",
+  authenticateToken,
   urlencodedParser,
   // (req, res, next) => {
   //   console.log("Привет!");
@@ -78,6 +79,25 @@ app.post(
     res.json({ status: "ок" });
   }
 );
+
+app.put("/users", authenticateToken, urlencodedParser, (req, res) => {
+  console.log(req.body);
+  database.update(
+    { _id: req.body._id },
+    {
+      $set: { objectType: "user", lastName: req.body.lastName, secondName: req.body.secondName, name: req.body.name, group: req.body.group, password: req.body.password, login: req.body.login},
+    },
+    {},
+    (err, doc) => {
+      console.log("Error ", err);
+      if (err) {
+        res.json(err);
+      } else {
+        res.json({ status: "ok", data: doc });
+      }
+    }
+  );
+});
 
 app.delete("/users", (req, res) => {
   console.log(req.query.id);
@@ -164,25 +184,37 @@ app.post("/imageTopic", upload.single("image"), (req, res) => {
 
 app.post("/login", (req, res) => {
   const { login, password } = req.body;
-  console.log('Body login pas', login, password)
-  const role = login === 'admin' && password === 'emf-@dmin' ? 1: 0
+  console.log("Body login pas", login, password);
+  const role = login === "admin" && password === "emf-@dmin" ? 1 : 0;
   database.find({ login: login, password }, function (err, item) {
     console.log("res", err, item);
-    if (!err && item.length !==0) {
+    if (!err && item.length !== 0) {
       const accessToken = generateAccessToken(item[0]);
       console.log("accessToken", accessToken);
       const refreshToken = generateRefreshToken(item[0]);
       console.log("refreshToken", refreshToken);
       //То есть инфу кодируем в токен
-      res.json({ accessToken: accessToken, refreshToken: refreshToken, role});
-    }
-    else {
-      res.json({err})
+      res.json({ accessToken: accessToken, refreshToken: refreshToken, role });
+    } else {
+      res.json({ err });
     }
   });
 });
 
 app.get("/secret", authenticateToken, (req, res) => {
-  res.json({status: "ok"})
+  res.json({ status: "ok" });
 });
 
+// ____________ПОЛУЧЕНИЕ ИНФОРМАЦИИ О ПОЛЬЗОВАТЕЛЕ_____________
+
+app.post("/information", authenticateToken, urlencodedParser, (req, res) => {
+  const { login, password } = req.body;
+  database.find({ login, password }, (err, item) => {
+    if ((!err, item.length !== 0)) {
+      console.log(item[0]);
+      res.json({ userInfo: item[0] });
+    } else {
+      res.json(err);
+    }
+  });
+});
