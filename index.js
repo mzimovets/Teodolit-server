@@ -65,18 +65,22 @@ app.post(
   // },
   (req, res) => {
     console.log(req.body);
-    database.insert({
-      objectType: "user",
-      key: req.body.data?.key,
-      lastName: req.body.data.lastName,
-      name: req.body.data.name,
-      secondName: req.body.data.secondName,
-      group: req.body.data.group,
-      login: req.body.data.login,
-      password: req.body.data.password,
-      status: req.body.data?.status,
-    });
-    res.json({ status: "ок" });
+    database.insert(
+      {
+        objectType: "user",
+        key: req.body.data?.key,
+        lastName: req.body.data.lastName,
+        name: req.body.data.name,
+        secondName: req.body.data.secondName,
+        group: req.body.data.group,
+        login: req.body.data.login,
+        password: req.body.data.password,
+        status: req.body.data?.status,
+      },
+      (err, item) => {
+        createUserTestData(req, res);
+      }
+    );
   }
 );
 
@@ -85,7 +89,15 @@ app.put("/users", authenticateToken, urlencodedParser, (req, res) => {
   database.update(
     { _id: req.body._id },
     {
-      $set: { objectType: "user", lastName: req.body.lastName, secondName: req.body.secondName, name: req.body.name, group: req.body.group, password: req.body.password, login: req.body.login},
+      $set: {
+        objectType: "user",
+        lastName: req.body.lastName,
+        secondName: req.body.secondName,
+        name: req.body.name,
+        group: req.body.group,
+        password: req.body.password,
+        login: req.body.login,
+      },
     },
     {},
     (err, doc) => {
@@ -218,3 +230,54 @@ app.post("/information", authenticateToken, urlencodedParser, (req, res) => {
     }
   });
 });
+
+// ___________Информация статусе тестов пользователя_____________
+
+const createUserTestData = (req, res) => {
+  const { login, password } = req.body.data;
+  // тестовый объект который передает информацию в БД
+  const testUserData = {
+    objectType: "userTest",
+    login,
+    password,
+    testData: [
+      { topicNumber: 1, status: "НЕ ПРОЙДЕНО", count: 0 },
+      { topicNumber: 2, status: "НЕ ПРОЙДЕНО", count: 0 },
+      { topicNumber: 3, status: "НЕ ПРОЙДЕНО", count: 0 },
+      { topicNumber: 4, status: "НЕ ПРОЙДЕНО", count: 0 },
+      { topicNumber: 5, status: "НЕ ПРОЙДЕНО", count: 0 },
+      { topicNumber: 6, status: "НЕ ПРОЙДЕНО", count: 0 },
+    ],
+  };
+  database.insert(testUserData, (err, doc) => {
+    console.log("Error ", err);
+    if (err) {
+      res.json(err);
+    } else {
+      res.json({ status: "ok", data: doc });
+    }
+  });
+};
+
+// app.post("/userTest", authenticateToken, urlencodedParser, createUserTestData);
+
+app.post("/userTest", authenticateToken, urlencodedParser, (req, res) => {
+  const { login, password } = req.body;
+  database.find(
+    {
+      objectType: "userTest",
+      login,
+      password,
+    },
+    (err, docs) => {
+      console.log("docs", docs)
+      if (err) {
+        console.log(err);
+      } else {
+        res.json({ status: "OK", result: JSON.stringify(docs[0]) });
+        console.log("docs", docs)
+      }
+    }
+  );
+});
+
