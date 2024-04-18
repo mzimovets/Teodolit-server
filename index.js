@@ -259,8 +259,47 @@ const createUserTestData = (req, res) => {
   });
 };
 
-// app.post("/userTest", authenticateToken, urlencodedParser, createUserTestData);
+// реализовать обновление результатов тестирования пользователя
 
+app.put("/userTest", authenticateToken, urlencodedParser, (req, res) => {
+  const { login, password, topicId, status} = req.body;
+  database.find(
+    {
+      objectType: "userTest",
+      login,
+      password,
+    },
+    (err, docs) => {
+      console.log("docs", docs)
+      if (err) {
+        console.log(err);
+      } else {
+        const newDoc = {...docs[0]}
+        console.log('newDoc:', newDoc)
+        console.log('docs[0]:', docs[0].testData[topicId])
+        newDoc.testData[topicId].count = docs[0].testData[topicId].count+1;
+        newDoc.testData[topicId].status = status
+        database.update(
+          { _id: docs[0]._id },
+          { $set: newDoc },
+          {},
+          (err, doc) => {
+          console.log("Error ", err);
+          if (err) {
+            res.json(err);
+          } else {
+            res.json({ status: "ok", data: doc });
+          }
+          }
+          )
+          console.log("docs", docs)
+      }
+    }
+  );
+  
+})
+
+// получение результатов тестирования пользователя
 app.post("/userTest", authenticateToken, urlencodedParser, (req, res) => {
   const { login, password } = req.body;
   database.find(
