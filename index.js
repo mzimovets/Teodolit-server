@@ -320,3 +320,15 @@ app.post("/userTest", authenticateToken, urlencodedParser, (req, res) => {
   );
 });
 
+app.get('/userTest', authenticateToken, (req, res)=>{
+  database.find({
+    objectType: 'userTest'
+  }, (err, docs)=>{
+    if(err){
+      console.log(err)
+    }
+    else {
+      res.json({status: 'OK', result: JSON.stringify(docs)})
+    }
+  })
+})
