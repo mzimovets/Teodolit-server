@@ -113,14 +113,26 @@ app.put("/users", authenticateToken, urlencodedParser, (req, res) => {
 
 app.delete("/users", (req, res) => {
   console.log(req.query.id);
-  database.remove({ _id: req.query.id }, {}, (err, numRemove) => {
-    if (err) {
-      console.log(err);
-      res.json({ err: JSON.stringify(err) });
-    } else {
-      res.json({ status: "ок", numRemove });
-    }
-  });
+  database.findOne({_id: req.query.id}, (err, doc)=>{
+    console.log("DOC: ",  doc);
+    if(!err) {
+      database.remove({login: doc?.login, password: doc?.password}, (err, numRemove)=>{
+        if (err) {
+          console.log(err);
+          res.json({ err: JSON.stringify(err) });
+        } else {
+          res.json({ status: "ок", numRemove });
+        }})
+    } 
+  })
+  // database.remove({ _id: req.query.id }, {}, (err, numRemove) => {
+  //   if (err) {
+  //     console.log(err);
+  //     res.json({ err: JSON.stringify(err) });
+  //   } else {
+  //     res.json({ status: "ок", numRemove });
+  //   }
+  // });
 });
 
 app.listen(port, () => {
@@ -198,7 +210,7 @@ app.post("/login", (req, res) => {
   const { login, password } = req.body;
   console.log("Body login pas", login, password);
   const role = login === "admin" && password === "emf-@dmin" ? 1 : 0;
-  database.find({ login: login, password }, function (err, item) {
+  database.find({ login: login, password, objectType: "user"}, function (err, item) {
     console.log("res", err, item);
     if (!err && item.length !== 0) {
       const accessToken = generateAccessToken(item[0]);
@@ -207,7 +219,15 @@ app.post("/login", (req, res) => {
       console.log("refreshToken", refreshToken);
       //То есть инфу кодируем в токен
       res.json({ accessToken: accessToken, refreshToken: refreshToken, role });
-    } else {
+    } 
+    else if (!err && item.length == 0 && role == 1){
+      const accessToken = generateAccessToken("admin");
+      console.log("accessToken", accessToken);
+      const refreshToken = generateRefreshToken("admin");
+      console.log("refreshToken", refreshToken);
+      res.json({ accessToken: accessToken, refreshToken: refreshToken, role });
+    }
+    else {
       res.json({ err });
     }
   });
