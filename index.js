@@ -116,11 +116,12 @@ app.delete("/users", (req, res) => {
   database.findOne({_id: req.query.id}, (err, doc)=>{
     console.log("DOC: ",  doc);
     if(!err) {
-      database.remove({login: doc?.login, password: doc?.password}, (err, numRemove)=>{
+      database.remove({login: doc?.login, password: doc?.password}, { multi: true }, (err, numRemove)=>{
         if (err) {
           console.log(err);
           res.json({ err: JSON.stringify(err) });
         } else {
+          console.log("numRemove", numRemove)
           res.json({ status: "ок", numRemove });
         }})
     } 
