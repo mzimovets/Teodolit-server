@@ -14,9 +14,9 @@ export const database = new Datastore("database.db");
 database.loadDatabase();
 
 const __dirname = import.meta.dirname;
-app.use(express.static(__dirname + "/build"));
 const app = express();
 const port = 3001;
+app.use(express.static(__dirname + "/build"));
 
 const urlencodedParser = bodyParser.urlencoded({ extended: false });
 app.use(bodyParser.json());
