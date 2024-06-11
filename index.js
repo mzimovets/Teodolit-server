@@ -15,7 +15,7 @@ database.loadDatabase();
 
 const __dirname = import.meta.dirname;
 const app = express();
-const port = 3001;
+const port = 5001;
 app.use(express.static(__dirname + "/build"));
 
 const urlencodedParser = bodyParser.urlencoded({ extended: false });
