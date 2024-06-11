@@ -9,11 +9,15 @@ import {
 } from "./auth/auth.js";
 //--------NeDB---------
 import Datastore from "nedb";
+import { dirname } from "path";
+import { fileURLToPath } from "url";
+
+const __dirname = dirname(fileURLToPath(import.meta.url));
 
 export const database = new Datastore("database.db");
 database.loadDatabase();
 
-const __dirname = import.meta.dirname;
+
 const app = express();
 const port = 5001;
 app.use(express.static(__dirname + "/build"));
