@@ -14,6 +14,7 @@ export const database = new Datastore("database.db");
 database.loadDatabase();
 
 const __dirname = import.meta.dirname;
+app.use(express.static(__dirname + "/build"));
 const app = express();
 const port = 3001;
 
@@ -21,8 +22,9 @@ const urlencodedParser = bodyParser.urlencoded({ extended: false });
 app.use(bodyParser.json());
 
 app.get("/", (req, res) => {
-  res.json({ status: "хорошо" });
+  res.sendFile(__dirname + "/build" + "/index.html");
 });
+
 
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
